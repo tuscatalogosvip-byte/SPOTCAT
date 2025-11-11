@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Prompt - Spot + SEO YouTube 2025</title>
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #1b1b1f, #2d2d35);
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #ffd54f;
+    margin-bottom: 15px;
+  }
+  .container {
+    max-width: 850px;
+    margin: auto;
+    background: #24242a;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+    color: #ffeb8a;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #33333a;
+    color: #fff;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #aaa;
+  }
+  button {
+    display: block;
+    width: 100%;
+    background: #ffd54f;
+    color: #1b1b1f;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+  }
+  button:hover {
+    background: #ffca28;
+  }
+  textarea#resultado {
+    margin-top: 20px;
+    height: 400px;
+    resize: none;
+    background: #1f1f25;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 Generador Premium - Spot + SEO YouTube 2025</h1>
+
+    <label>📘 Nombre del Catálogo (Marca):</label>
+    <input type="text" id="marca" placeholder="Ej. Zermat, Fuller, Arabela...">
+
+    <label>🗓️ Campaña o Mes:</label>
+    <input type="text" id="campania" placeholder="Ej. Noviembre 2025">
+
+    <label>💬 Resumen o contenido del catálogo:</label>
+    <textarea id="resumen" placeholder="Ej. Perfumes nuevos, promociones de maquillaje, sets de regalo, lanzamientos de temporada..."></textarea>
+
+    <label>👠 Tipo de productos principales:</label>
+    <input type="text" id="productos" placeholder="Ej. perfumes, maquillaje, calzado, hogar...">
+
+    <label>📅 Año:</label>
+    <input type="text" id="anio" placeholder="Ej. 2025">
+
+    <label>🎤 Nombre del canal o creador:</label>
+    <input type="text" id="canal" placeholder="Ej. Catálogos Virtuales">
+
+    <label>🎭 Estilo del Spot:</label>
+    <select id="tono">
+      <option value="motivador y vendedor">Motivador y vendedor</option>
+      <option value="informativo y elegante">Informativo y elegante</option>
+      <option value="juvenil y fresco">Juvenil y fresco</option>
+    </select>
+
+    <label>🔗 Enlace de la app Catálogos VIP:</label>
+    <input type="text" id="enlace" value="https://play.google.com/store/apps/details?id=catalogos.vendemas">
+
+    <button onclick="generarPrompt()">✨ Generar Prompt Completo</button>
+    <button onclick="copiarPrompt()">📋 Copiar Prompt</button>
+
+    <textarea id="resultado" readonly placeholder="Aquí aparecerá el prompt listo para usar..."></textarea>
+  </div>
+
+<script>
+function generarPrompt() {
+  const marca = document.getElementById("marca").value.trim();
+  const campania = document.getElementById("campania").value.trim();
+  const resumen = document.getElementById("resumen").value.trim();
+  const productos = document.getElementById("productos").value.trim();
+  const anio = document.getElementById("anio").value.trim();
+  const canal = document.getElementById("canal").value.trim();
+  const tono = document.getElementById("tono").value;
+  const enlace = document.getElementById("enlace").value.trim();
+
+  const prompt = `
+=====================
+🗣️ SPOT + SEO YOUTUBE 2025
+=====================
+
+Crea un SPOT para YouTube + SEO COMPLETO optimizado con el algoritmo 2025, sobre un video que presenta el catálogo "${marca} ${campania}" (${anio}), creado por ${canal}.
+
+🧾 Información clave:
+- Marca: ${marca}
+- Campaña/Mes: ${campania}
+- Año: ${anio}
+- Contenido del catálogo: ${resumen}
+- Tipo de productos: ${productos}
+- Enlace a la app: ${enlace}
+
+🎬 SPOT (Guion para video)
+Debe tener:
+🎙️ Saludo cercano y motivador del creador (${canal}).
+💄 Presentación del catálogo (${marca}, ${campania}, ${anio}, productos: ${productos}).
+✨ Descripción breve y atractiva resaltando lo que ofrece: ${resumen}.
+💬 Frases inspiradoras para quienes venden por catálogo.
+🔔 Llamado a la acción (like, suscribirse, activar campanita).
+📲 Despedida motivadora invitando a descargar el catálogo completo desde la app Catálogos VIP (enlace en la descripción).
+🎯 Cierre con energía positiva y motivación ("¡A vender con todo este mes!" o "¡Vamos por esas metas!").
+Tono general: ${tono}, alegre, latino y natural, sin parecer anuncio de TV.
+
+📈 SEO COMPLETO
+1️⃣ Título atractivo con palabras clave, marca, mes y año.
+2️⃣ Descripción optimizada (6 a 10 líneas) que resuma el catálogo, incluya llamado a la acción y el enlace:
+👉 ${enlace}
+3️⃣ Mini lista de otros catálogos recomendados para mejorar SEO interno.
+4️⃣ Hashtags relevantes (#Catálogo${marca}${anio} #${marca} #CatálogosVIP #VentasPorCatálogo)
+5️⃣ Etiquetas (tags): ${marca}, Catálogo ${marca} ${anio}, ${marca} ${campania}, catálogos digitales, ventas por catálogo, ${productos}, promociones, app Catálogos VIP.
+
+📦 Formato de salida:
+1️⃣ SPOT (guion)
+2️⃣ TÍTULO
+3️⃣ DESCRIPCIÓN
+4️⃣ HASHTAGS
+5️⃣ ETIQUETAS
+`;
+
+  document.getElementById("resultado").value = prompt;
+}
+
+function copiarPrompt() {
+  const texto = document.getElementById("resultado");
+  texto.select();
+  document.execCommand("copy");
+  alert("✅ Prompt copiado al portapapeles");
+}
+</script>
+</body>
+</html>
