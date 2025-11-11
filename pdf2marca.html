@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Formulario Generador ZIP Portada Vertical</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #050000, #030129);
+    color: white;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  input, button {
+    width: 100%;
+    max-width: 400px;
+    margin: 8px auto 16px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+  }
+  input[type="file"] { background: #fff; color: #333; }
+  input[type="color"] { height: 40px; cursor: pointer; }
+  button { background: #eb1400; color: #fff; font-weight: bold; cursor: pointer; }
+  button:hover { background: #f51629; }
+  #status { margin-top: 10px; font-weight: 600; color: #f1c40f; }
+  #preview {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, #2980b9 0%, #6dd5fa 100%);
+    border-radius: 16px;
+    padding: 40px 30px;
+    min-height: 320px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+  #preview .img-side { flex: 0 0 40%; display: flex; justify-content: center; position: relative; z-index: 1; }
+  #preview .img-side img { max-width: 90%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); object-fit: contain; }
+  #preview .text-side { flex: 0 0 55%; text-align: center; z-index: 1; }
+  #preview h2 { margin: 0 0 8px; font-size: clamp(3.5rem, 5vw, 4rem); font-weight: 1200; line-height: 1.2; }
+  #preview h4 { margin: 0; font-size: clamp(2.2rem, 3vw, 3rem); font-weight: 1200; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<form id="formGeneradorZIP">
+<h1>📘 Formulario Generador ZIP Portada Vertical</h1>
+
+<label>Selecciona tus imágenes:</label>
+<input type="file" id="inputFiles" accept="image/*" multiple />
+
+<label>Título inferior (pie de página) / Nombre ZIP:</label>
+<input type="text" id="zipName" placeholder="Ej: Catalogo_2025" />
+
+<label>Color fondo pie:</label>
+<input type="color" id="footerBg" value="#000000" />
+
+<label>Color texto pie:</label>
+<input type="color" id="footerText" value="#ffffff" />
+
+<!-- NUEVO: Logo para el pie de página -->
+<label>Logo para el pie de página:</label>
+<input type="file" id="logoFile" accept="image/*" />
+
+<hr />
+
+<label>Color superior portada:</label>
+<input type="color" id="colorTop" value="#2980b9" />
+
+<label>Color inferior portada:</label>
+<input type="color" id="colorBottom" value="#6dd5fa" />
+
+<button id="generate" type="button" disabled>Generar ZIP</button>
+<div id="status"></div>
+</form>
+
+<h2>Vista previa:</h2>
+<div id="preview">
+  <div class="img-side">
+    <img id="previewImg" src="" style="display:none" />
+  </div>
+  <div class="text-side">
+    <h2 id="previewTitle">Tu portada</h2>
+    <h4 id="previewSubtitle" style="color:#FFFF00">Vista previa</h4>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+const inputFiles = document.getElementById("inputFiles");
+const zipName = document.getElementById("zipName");
+const footerBg = document.getElementById("footerBg");
+const footerText = document.getElementById("footerText");
+const colorTop = document.getElementById("colorTop");
+const colorBottom = document.getElementById("colorBottom");
+const previewImg = document.getElementById("previewImg");
+const preview = document.getElementById("preview");
+const generate = document.getElementById("generate");
+const status = document.getElementById("status");
+const logoFile = document.getElementById("logoFile");
+
+let imagesFiles = []; 
+let logoImage = null;
+
+function updatePreview(){
+  preview.style.background = `linear-gradient(to bottom, ${colorTop.value} 0%, ${colorBottom.value} 100%)`;
+  if(imagesFiles.length > 0){
+    const reader = new FileReader();
+    reader.onload = e => { previewImg.src = e.target.result; previewImg.style.display = "block"; };
+    reader.readAsDataURL(imagesFiles[0]);
+  } else { previewImg.style.display = "none"; }
+}
+
+[inputFiles, zipName, footerBg, footerText, colorTop, colorBottom].forEach(el =>
+  el.addEventListener("input", () => {
+    if(inputFiles.files.length && zipName.value) generate.disabled = false;
+    updatePreview();
+  })
+);
+
+inputFiles.addEventListener("change", () => {
+  imagesFiles = Array.from(inputFiles.files);
+  updatePreview();
+});
+
+logoFile.addEventListener("change", async () => {
+  if (logoFile.files.length > 0) {
+    const file = logoFile.files[0];
+    logoImage = new Image();
+    logoImage.src = URL.createObjectURL(file);
+    await logoImage.decode();
+  } else {
+    logoImage = null;
+  }
+});
+
+document.getElementById("formGeneradorZIP").addEventListener("submit", e => e.preventDefault());
+
+function drawImageCover(ctx, img, dx, dy, dWidth, dHeight){
+  const sw = img.width, sh = img.height;
+  const swBySh = sw/sh;
+  const dwByDh = dWidth/dHeight;
+  let sx, sy, sWidth, sHeight;
+
+  if (swBySh > dwByDh){
+    sHeight = sh; sWidth = sh*dwByDh; sx=(sw-sWidth)/2; sy=0;
+  } else {
+    sWidth = sw; sHeight = sw/dwByDh; sx=0; sy=(sh-sHeight)/2;
+  }
+  ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+}
+
+generate.addEventListener("click", async () => {
+  if (!imagesFiles.length){ alert("Selecciona al menos una imagen."); return; }
+  generate.disabled = true;
+  status.textContent = "⏳ Generando imágenes y ZIP...";
+
+  const zip = new JSZip();
+  const folder = zip.folder(zipName.value || "catalogo");
+
+  const pageW = 2480;
+  const pageH = 1754;
+  const footerH = 100;
+
+  // --- PORTADA ---
+  const portadaCanvas = document.createElement("canvas");
+  portadaCanvas.width = pageW; portadaCanvas.height = pageH;
+  const ctxP = portadaCanvas.getContext("2d");
+  const grad = ctxP.createLinearGradient(0,0,0,pageH);
+  grad.addColorStop(0, colorTop.value); grad.addColorStop(1, colorBottom.value);
+  ctxP.fillStyle = grad; ctxP.fillRect(0,0,pageW,pageH);
+
+  const firstImg = new Image();
+  firstImg.src = URL.createObjectURL(imagesFiles[0]);
+  await firstImg.decode();
+  drawImageCover(ctxP, firstImg, 0, 0, pageW/2, pageH);
+
+  await new Promise(r => portadaCanvas.toBlob(b=>{ folder.file("00_PORTADA.jpg", b); r(); }, "image/jpeg", 0.92));
+
+  // --- PÁGINAS SIGUIENTES ---
+  let pageIndex = 1;
+  for (let i = 0; i < imagesFiles.length; i += 2) {
+    const fileA = imagesFiles[i];
+    const fileB = (i+1 < imagesFiles.length) ? imagesFiles[i+1] : null;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = pageW; canvas.height = pageH;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,pageW,pageH);
+
+    const usableH = pageH - footerH;
+    if(fileB){
+      const halfW = pageW/2;
+      const imgA = new Image(); imgA.src=URL.createObjectURL(fileA); await imgA.decode();
+      drawImageCover(ctx,imgA,0,0,halfW,usableH);
+
+      const imgB = new Image(); imgB.src=URL.createObjectURL(fileB); await imgB.decode();
+      drawImageCover(ctx,imgB,halfW,0,halfW,usableH);
+    } else {
+      const imgA = new Image(); imgA.src=URL.createObjectURL(fileA); await imgA.decode();
+      drawImageCover(ctx,imgA,0,0,pageW,usableH);
+    }
+
+    // --- Pie de página ---
+    ctx.fillStyle = footerBg.value;
+    ctx.fillRect(0,pageH-footerH,pageW,footerH);
+
+    // Dibuja logo si existe
+    if (logoImage) {
+      const logoH = footerH * 0.8;
+      const logoW = logoImage.width * (logoH / logoImage.height);
+      const logoX = pageW * 0.05;
+      const logoY = pageH - footerH / 2 - logoH / 2;
+      ctx.drawImage(logoImage, logoX, logoY, logoW, logoH);
+    }
+
+    // Texto del pie
+    ctx.fillStyle = footerText.value;
+    const fontSize = Math.max(36, Math.floor(footerH * 0.45));
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(zipName.value, pageW / 2, pageH - footerH / 2);
+
+    const filename = `${String(pageIndex).padStart(2,'0')}_${fileA.name.replace(/\.[^/.]+$/,"")}.jpg`;
+    await new Promise(r => canvas.toBlob(b=>{ folder.file(filename,b); r(); }, "image/jpeg", 0.92));
+    pageIndex++;
+  }
+
+  const blobZip = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blobZip);
+  a.download = (zipName.value || "catalogo")+".zip";
+  a.click();
+
+  status.textContent = "✅ ZIP generado correctamente";
+  generate.disabled = false;
+});
+</script>
+</body>
+</html>
