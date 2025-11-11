@@ -52,17 +52,17 @@
   <select id="marca">
     <option value="ARABELA">Arabela</option>
     <option value="FULLER">Fuller</option>
-     <option value="STANHOME">Stanhome</option>
+    <option value="STANHOME">Stanhome</option>
     <option value="ESIKA">Esika</option>
-     <option value="NATURA">NATURA</option>
-     <option value="LBEL">Lbel</option>
-     <option value="CYZONE">Cyzone</option>
-       <option value="TUPPERWARE">Tupperware</option>
-        <option value="BETTERWARE">Betterware</option>
-          <option value="ANDREA">Andrea</option>
-         <option value="PRICESHOES">Priceshoes</option>
-        <option value="YANBAL">Yanbal</option>
-        <option value="AVON">Avon</option>
+    <option value="NATURA">Natura</option>
+    <option value="LBEL">Lbel</option>
+    <option value="CYZONE">Cyzone</option>
+    <option value="TUPPERWARE">Tupperware</option>
+    <option value="BETTERWARE">Betterware</option>
+    <option value="ANDREA">Andrea</option>
+    <option value="PRICESHOES">Priceshoes</option>
+    <option value="YANBAL">Yanbal</option>
+    <option value="AVON">Avon</option>
   </select>
 
   <label>Nombre del catálogo:</label>
@@ -115,7 +115,7 @@ async function cargarDatos() {
     jsonData = await res.json();
     console.log("✅ JSON cargado correctamente");
   } catch (e) {
-    console.warn("⚠️ No se pudo cargar el JSON externo:", e);
+    console.warn("⚠️ No se pudo cargar el JSON:", e);
     alert("No se pudo cargar el archivo JSON. Verifica la ruta o conexión.");
   }
   formBtn.disabled = false; // Habilita el botón
@@ -132,14 +132,16 @@ document.getElementById('seoForm').addEventListener('submit', e => {
   const usarAppVal = usarApp.value;
   const nombreApp = document.getElementById('nombreApp').value.trim();
   const urlApp = document.getElementById('urlApp').value.trim();
-  const marcaSel = document.getElementById('marca').value;
+  const marcaSel = document.getElementById('marca').value.toUpperCase();
 
-  // 🔄 Elegir textos aleatorios
+  // 🔄 Textos aleatorios
   const saludo = jsonData.saludos[Math.floor(Math.random() * jsonData.saludos.length)];
   const despedida = jsonData.despedidas[Math.floor(Math.random() * jsonData.despedidas.length)];
 
-  // 🎯 Buscar la marca elegida
-  const marcaData = jsonData.marcas.find(m => m.nombre === marcaSel);
+  // 🎯 Buscar la marca (todo en mayúsculas)
+  const marcaData = jsonData.marcas.find(m => m.nombre.toUpperCase() === marcaSel);
+  if (!marcaData) return alert("⚠️ No se encontró la marca en el JSON.");
+
   const hashtags = marcaData.hashtags.join(" ");
   const etiquetas = marcaData.etiquetas.join(", ");
 
