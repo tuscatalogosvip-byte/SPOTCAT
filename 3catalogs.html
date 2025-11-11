@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Catálogos HTML</title>
+<style>
+body{background:#0b0b0b;color:#fff;font-family:sans-serif;text-align:center;padding:20px}
+h1{color:#0ff}
+fieldset{border:1px solid #444;border-radius:8px;padding:10px;margin:10px auto;max-width:600px}
+input{width:90%;padding:8px;margin:4px 0;background:#111;color:#0ff;border:1px solid #333;border-radius:6px}
+button{padding:10px 20px;margin-top:15px;background:#0ff;color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>Generador de Catálogos (3)</h1>
+
+<fieldset>
+<legend>Catálogo 1</legend>
+<input id="nombre1" placeholder="Nombre del catálogo 1">
+<input id="url1" placeholder="URL última imagen catálogo 1">
+</fieldset>
+
+<fieldset>
+<legend>Catálogo 2</legend>
+<input id="nombre2" placeholder="Nombre del catálogo 2">
+<input id="url2" placeholder="URL última imagen catálogo 2">
+</fieldset>
+
+<fieldset>
+<legend>Catálogo 3</legend>
+<input id="nombre3" placeholder="Nombre del catálogo 3">
+<input id="url3" placeholder="URL última imagen catálogo 3">
+</fieldset>
+
+<button id="btnGenerar">Generar y Descargar catalogos.html</button>
+
+<script>
+document.getElementById("btnGenerar").addEventListener("click",()=>{
+  const data=[
+    {nombre:document.getElementById("nombre1").value.trim(),ultima:document.getElementById("url1").value.trim()},
+    {nombre:document.getElementById("nombre2").value.trim(),ultima:document.getElementById("url2").value.trim()},
+    {nombre:document.getElementById("nombre3").value.trim(),ultima:document.getElementById("url3").value.trim()}
+  ];
+  if(data.some(d=>!d.nombre||!d.ultima)){alert("Completa todos los campos.");return;}
+
+  const finalHtml=`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(data[0].nombre)}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
+<style>
+body{background:#111;color:#fff;font-family:sans-serif;margin:0;padding:0;text-align:center;user-select:none;-webkit-user-select:none;}
+#barra-arriba{width:100%;background:#222;padding:6px;display:flex;justify-content:space-around;align-items:center;gap:6px;position:sticky;top:0;z-index:999;font-size:14px;flex-wrap:wrap;}
+#titulo-catalogo{color:#0af;font-weight:bold;white-space:nowrap;}
+#barra-arriba input{width:55px;padding:3px;font-weight:bold;background:#000;color:#f00;border:1px solid #f00;text-align:center;}
+#barra-arriba span{color:#ff0;font-weight:bold;}
+#btnFavorito{font-size:22px;background:none;border:none;cursor:pointer;color:#fff;}
+#btnFavorito.fav{color:#f00;}
+#btnVerFav{padding:4px 8px;border:none;border-radius:5px;background:#444;color:#fff;font-size:12px;cursor:pointer;}
+select{background:#000;color:#0f0;border:1px solid #0f0;font-weight:bold;padding:3px;}
+#imagenWrapper{position:relative;display:inline-block;max-width:95%;margin:10px auto;}
+#imagenCatalogo{width:100%;display:block;border:2px solid #444;cursor:pointer;}
+.btnImg{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:26px;padding:8px 12px;cursor:pointer;border-radius:50%;font-weight:bold;}
+#btnPrevImg{left:-15px;}#btnNextImg{right:-15px;}
+#modalFav{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;overflow:auto;padding:60px 20px 20px;}
+#modalFavContent{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.thumbFav{position:relative;}
+.thumbFav img{width:140px;height:auto;border:2px solid #fff;border-radius:8px;cursor:pointer;}
+.removeFav{position:absolute;top:5px;right:5px;width:28px;height:28px;background:#f00;color:#fff;border:none;border-radius:50%;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#closeFav{position:absolute;top:10px;right:15px;background:#f00;color:#fff;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-weight:bold;}
+</style>
+</head>
+<body>
+<div id="barra-arriba">
+<select id="selectCatalogo">
+<option value="0">${escapeHtml(data[0].nombre)}</option>
+<option value="1">${escapeHtml(data[1].nombre)}</option>
+<option value="2">${escapeHtml(data[2].nombre)}</option>
+</select>
+<span id="titulo-catalogo">${escapeHtml(data[0].nombre)}</span>
+<label for="pagina">Ir:</label>
+<input type="number" id="pagina" min="1" max="1">
+<button id="irPagina">OK</button>
+<span id="contador">1 / 1</span>
+<button id="btnFavorito">❤</button>
+<button id="btnVerFav">⭐</button>
+</div>
+
+<div id="imagenWrapper">
+<button class="btnImg" id="btnPrevImg">⬅️</button>
+<img src="" id="imagenCatalogo" loading="lazy">
+<button class="btnImg" id="btnNextImg">➡️</button>
+</div>
+
+<div id="modalFav">
+<button id="closeFav">Cerrar ✖</button>
+<div id="modalFavContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"><\/script>
+<script>
+const catalogos=${JSON.stringify(data, null, 2)};
+let currentCatalogo=0;let catalogo=[];let currentIndex=0;let TOTAL_PAGINAS=0;
+function generarCatalogo(urlUltima){const match=urlUltima.match(/(\\d+)(\\.\\w+)$/);if(!match)return[];const total=parseInt(match[1]);const base=urlUltima.replace(/(\\d+)(\\.\\w+)$/,"");const ext=match[2];TOTAL_PAGINAS=total;const arr=[];for(let i=1;i<=total;i++){arr.push({src:\`\${base}\${i}\${ext}\`,type:"image"});}return arr;}
+function cambiarCatalogo(index){currentCatalogo=index;const info=catalogos[index];catalogo=generarCatalogo(info.ultima);currentIndex=0;document.getElementById("titulo-catalogo").textContent=info.nombre;document.getElementById("pagina").max=TOTAL_PAGINAS;actualizarImagen();}
+function getFavoritos(){return JSON.parse(localStorage.getItem("favoritos_"+currentCatalogo))||[];}
+function setFavoritos(arr){localStorage.setItem("favoritos_"+currentCatalogo,JSON.stringify(arr));}
+function actualizarBotonFav(){const favs=getFavoritos();const btn=document.getElementById("btnFavorito");if(favs.includes(currentIndex))btn.classList.add("fav");else btn.classList.remove("fav");}
+function toggleFavorito(){let favs=getFavoritos();if(favs.includes(currentIndex))favs=favs.filter(i=>i!==currentIndex);else favs.push(currentIndex);setFavoritos(favs);actualizarBotonFav();}
+document.getElementById("btnFavorito").addEventListener("click",toggleFavorito);
+function abrirModalFav(){const cont=document.getElementById("modalFavContent");cont.innerHTML="";const favs=getFavoritos();if(favs.length===0){cont.innerHTML="<p>No tienes favoritos</p>";}else{favs.forEach(i=>{const div=document.createElement("div");div.className="thumbFav";const img=document.createElement("img");img.src=catalogo[i].src;img.addEventListener("click",()=>{currentIndex=i;actualizarImagen();cerrarModalFav();});const btn=document.createElement("button");btn.className="removeFav";btn.textContent="X";btn.addEventListener("click",()=>{let favs2=getFavoritos().filter(x=>x!==i);setFavoritos(favs2);abrirModalFav();actualizarBotonFav();});div.appendChild(img);div.appendChild(btn);cont.appendChild(div);});}document.getElementById("modalFav").style.display="block";}
+function cerrarModalFav(){document.getElementById("modalFav").style.display="none";}
+document.getElementById("btnVerFav").addEventListener("click",abrirModalFav);
+document.getElementById("closeFav").addEventListener("click",cerrarModalFav);
+function actualizarImagen(){const img=document.getElementById("imagenCatalogo");img.src=catalogo[currentIndex].src;document.getElementById("contador").textContent=\`\${currentIndex+1} / \${TOTAL_PAGINAS}\`;document.getElementById("pagina").value=currentIndex+1;actualizarBotonFav();}
+document.getElementById("btnPrevImg").addEventListener("click",()=>{currentIndex=(currentIndex-1+TOTAL_PAGINAS)%TOTAL_PAGINAS;actualizarImagen();});
+document.getElementById("btnNextImg").addEventListener("click",()=>{currentIndex=(currentIndex+1)%TOTAL_PAGINAS;actualizarImagen();});
+document.getElementById("irPagina").addEventListener("click",()=>{const num=parseInt(document.getElementById("pagina").value)-1;if(num>=0&&num<TOTAL_PAGINAS){currentIndex=num;actualizarImagen();}});
+document.getElementById("imagenCatalogo").addEventListener("click",()=>{Fancybox.show(catalogo,{startIndex:currentIndex});});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();});
+document.getElementById("selectCatalogo").addEventListener("change",e=>cambiarCatalogo(parseInt(e.target.value)));
+cambiarCatalogo(0);
+<\/script>
+</body></html>`;
+
+  const blob=new Blob([finalHtml],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="catalogos.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");}
+</script>
+</body>
+</html>
