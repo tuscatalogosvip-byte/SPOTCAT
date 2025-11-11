@@ -1,24 +1,60 @@
 {
   "saludos": [
-    "💖 ¡Hola mis bellas emprendedoras!",
-    "✨ ¡Hola reinas de las ventas!",
-    "🌸 ¡Hola chicas poderosas del catálogo!",
-    "💋 ¡Hola mis amores de la moda!"
+    "\"Hola reinas Arabela,\"﻿ bienvenidas a un espacio lleno de aromas y oportunidades.",
+    "\"Bienvenidas amantes de los aromas,\"﻿ prepárense para descubrir novedades que iluminarán su día.",
+    "\"Hola, emprendedoras y amantes del buen gusto,\"﻿ este es su canal para crecer juntas.",
+    "\"Saludos, familia Arabela,\"﻿ donde cada aroma es una nueva historia de éxito.",
+    "\"Hola a todas las apasionadas de los aromas,\"﻿ vamos a hacer que cada venta cuente."
+  ],
+  "frases": [
+    "Tu negocio brilla,\"﻿ el éxito empieza con una sola venta.",
+    "Cada aroma que vendas,\"﻿ es un paso hacia tus sueños.",
+    "Confía en tu potencial,\"﻿ tu esfuerzo dará frutos.",
+    "La constancia y la pasión,\"﻿ son la clave de tu crecimiento.",
+    "Emprender es crear tu propio camino,\"﻿ sigue adelante sin miedo."
   ],
   "despedidas": [
-    "💄 ¡Nos vemos en el próximo video, mis amores!",
-    "🌟 ¡Sigue brillando y vendiendo con estilo!",
-    "💋 ¡Hasta el siguiente catálogo, preciosas!",
-    "💖 ¡Gracias por estar aquí, sigamos creciendo juntas!"
+    "Nos vemos en el siguiente catálogo,\"﻿ gracias por ver y seguir vendiendo con éxito.",
+    "Gracias por acompañarme,\"﻿ nos vemos pronto con más productos para ti.",
+    "Hasta la próxima catálogo,\"﻿ sigue brillando con cada venta.",
+    "Gracias por ser parte de esta familia,\"﻿ continúa compartiendo y creciendo.",
+    "Nos despedimos por ahora,\"﻿ pero el éxito continúa contigo."
   ],
-  "hashtags": [
-    "#Catalogos2025 #Moda #Belleza #Emprendedoras #Perfumes",
-    "#CatalogosLatam #Ofertas #Ventas #Cosmeticos #Ropa",
-    "#CatalogosVirtuales #Novedades2025 #EmprendeConEstilo"
-  ],
-  "etiquetas": [
-    "belleza, maquillaje, perfumes, moda, ventas, catálogo 2025",
-    "negocio propio, cosméticos, oportunidades, moda femenina",
-    "nuevas campañas, tendencias, emprendedoras latinas"
+  "marcas": [
+    {
+      "nombre": "ARABELA",
+      "hashtags": [
+        "#ArabelaAromas",
+        "#VendeConArabela",
+        "#AromasQueInspiran",
+        "#ÉxitoConArabela",
+        "#FamiliaArabela"
+      ],
+      "etiquetas": [
+        "ArabelaOficial",
+        "AromasConArabela",
+        "VentaDirectaArabela",
+        "CatálogoArabela",
+        "ArabelaEmprende",
+        "SueñaConArabela"
+      ]
+    },
+    {
+      "nombre": "FULLER",
+      "hashtags": [
+        "#Fuller",
+        "#FullerOficial",
+        "#FullerVenezuela",
+        "#FullerProductos",
+        "#FullerBelleza"
+      ],
+      "etiquetas": [
+        "FullerOficial",
+        "Fuller",
+        "FullerCosmetics",
+        "FullerCare",
+        "FullerBeauty"
+      ]
+    }
   ]
 }
