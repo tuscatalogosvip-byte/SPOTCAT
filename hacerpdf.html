@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Turbo Converter Full Page</title>
+<style>
+  body {
+    background-color: #121212;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .box {
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 420px;
+  }
+  input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 15px;
+  }
+  input[type="file"], input[type="text"] {
+    background: #2a2a2a;
+    color: #ccc;
+  }
+  button {
+    background: #00b4d8;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  button:hover { background: #0096c7; }
+  #progressContainer {
+    width: 100%;
+    background: #333;
+    border-radius: 8px;
+    margin-top: 10px;
+    height: 20px;
+    display: none;
+  }
+  #progressBar {
+    height: 100%;
+    width: 0%;
+    background: #00b4d8;
+    border-radius: 8px;
+    transition: width 0.1s linear;
+  }
+  #status {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>PDF Turbo Converter ⚡ (Full Page)</h2>
+  <input type="file" id="imagenes" multiple accept="image/*" />
+  <input type="text" id="nombrePDF" placeholder="Nombre del PDF (sin .pdf)" />
+  <button id="crearPDF">Generar PDF</button>
+  <div id="progressContainer"><div id="progressBar"></div></div>
+  <div id="status"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+document.getElementById("crearPDF").addEventListener("click", async () => {
+  const archivos = Array.from(document.getElementById("imagenes").files);
+  if (!archivos.length) return alert("Selecciona imágenes primero.");
+
+  const nombre = (document.getElementById("nombrePDF").value || "imagenes") + ".pdf";
+  const pdf = new jsPDF({ unit: "pt", compress: true });
+
+  const progressBar = document.getElementById("progressBar");
+  const progressContainer = document.getElementById("progressContainer");
+  const status = document.getElementById("status");
+  progressContainer.style.display = "block";
+
+  status.textContent = "Cargando imágenes...";
+  const dataURLs = await Promise.all(archivos.map(a => fileToCompressedDataURL(a)));
+
+  let total = dataURLs.length;
+  let done = 0;
+
+  for (const dataURL of dataURLs) {
+    const img = await loadImage(dataURL);
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    if (done > 0) pdf.addPage();
+    pdf.addImage(dataURL, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+    done++;
+    progressBar.style.width = ((done / total) * 100) + "%";
+    status.textContent = `Procesando ${done}/${total}`;
+  }
+
+  status.textContent = "Guardando PDF...";
+  pdf.save(nombre);
+  status.textContent = "✅ PDF generado correctamente (Full Page)";
+  setTimeout(() => {
+    progressContainer.style.display = "none";
+    progressBar.style.width = "0%";
+  }, 1500);
+});
+
+function fileToCompressedDataURL(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const MAX = 1500;
+        let w = img.width, h = img.height;
+        if (w > h && w > MAX) { h *= MAX / w; w = MAX; }
+        else if (h > MAX) { w *= MAX / h; h = MAX; }
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL("image/jpeg", 0.6));
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
+</script>
+
+</body>
+</html>
