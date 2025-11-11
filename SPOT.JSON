@@ -72,6 +72,42 @@
         "cuidofamiliar",
         "productosexclusivos"
       ]
+    },
+    {
+      "nombre": "NATURA",
+      "hashtags": [
+        "#NaturaMexico",
+        "#BellezaNatural",
+        "#CuidadoConAmor",
+        "#NaturaOficial",
+        "#EmprendedorasNatura"
+      ],
+      "etiquetas": [
+        "NaturaMexico",
+        "NaturaOficial",
+        "BellezaNatural",
+        "CuidadoConAmor",
+        "NaturaEmprende"
+      ]
+    },
+    {
+      "nombre": "ESIKA",
+      "hashtags": [
+        "#esika",
+        "#makeupartist",
+        "#belleza",
+        "#skincare",
+        "#maquillaje"
+      ],
+      "etiquetas": [
+        "esikaoficial",
+        "makeupartist",
+        "belleza",
+        "cosmeticos",
+        "cuidado",
+        "facial",
+        "maquillajediario"
+      ]
     }
   ]
 }
