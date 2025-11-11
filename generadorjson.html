@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador + Editor JSON SEO de Catálogos</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+  }
+  h1 { text-align: center; color: #ff4fa1; }
+  h2 { margin-top: 30px; }
+  textarea, input {
+    width: 100%; padding: 10px; margin: 5px 0 15px;
+    border-radius: 6px; border: 1px solid #ccc; font-size: 14px;
+  }
+  button {
+    background: #ff4fa1; color: #fff; border: none;
+    border-radius: 6px; padding: 10px 20px; cursor: pointer; font-size: 14px;
+  }
+  button:hover { background: #ff2c8a; }
+  .marca-box {
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    padding: 15px; margin-bottom: 15px;
+  }
+  pre {
+    background: #fff; padding: 15px; border-radius: 6px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    overflow-x: auto;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎀 Generador y Editor de JSON SEO</h1>
+
+<h2>📥 Cargar JSON existente</h2>
+<textarea id="jsonExistente" rows="6" placeholder="Pega aquí tu JSON actual..."></textarea>
+<button id="cargarJSON">📂 Cargar al Editor</button>
+
+<h2>💬 Saludos, frases y despedidas generales</h2>
+<label>Saludos (uno por línea)</label>
+<textarea id="saludos" rows="4"></textarea>
+
+<label>Frases motivadoras (una por línea)</label>
+<textarea id="frases" rows="4"></textarea>
+
+<label>Despedidas (una por línea)</label>
+<textarea id="despedidas" rows="4"></textarea>
+
+<h2>🏷️ Marcas</h2>
+<div id="marcas"></div>
+<button id="agregarMarca">➕ Agregar Marca</button>
+
+<h2>📦 Resultado JSON</h2>
+<button id="generarJSON">🧩 Generar JSON</button>
+<button id="descargarJSON">💾 Descargar JSON</button>
+
+<pre id="resultado"></pre>
+
+<script>
+  const contenedorMarcas = document.getElementById('marcas');
+  const resultado = document.getElementById('resultado');
+
+  // 🔹 Añadir una nueva marca vacía
+  function crearMarca(nombre = "", hashtags = [], etiquetas = []) {
+    const div = document.createElement('div');
+    div.className = 'marca-box';
+    div.innerHTML = `
+      <label>Nombre de la marca:</label>
+      <input type="text" class="nombre" placeholder="Ejemplo: Arabela" value="${nombre}">
+
+      <label>Hashtags (uno por línea o separados por espacio):</label>
+      <textarea class="hashtags" rows="3" placeholder="#catalogos #belleza #moda">${hashtags.join(' ')}</textarea>
+
+      <label>Etiquetas (una por línea o separadas por coma):</label>
+      <textarea class="etiquetas" rows="3" placeholder="catálogo, belleza, ofertas">${etiquetas.join(', ')}</textarea>
+
+      <button class="eliminar">🗑️ Eliminar marca</button>
+    `;
+    div.querySelector('.eliminar').addEventListener('click', () => div.remove());
+    contenedorMarcas.appendChild(div);
+  }
+
+  document.getElementById('agregarMarca').addEventListener('click', () => crearMarca());
+
+  // 🔹 Generar JSON desde los campos
+  document.getElementById('generarJSON').addEventListener('click', () => {
+    const saludos = document.getElementById('saludos').value.split('\n').filter(x => x.trim());
+    const frases = document.getElementById('frases').value.split('\n').filter(x => x.trim());
+    const despedidas = document.getElementById('despedidas').value.split('\n').filter(x => x.trim());
+
+    const marcas = Array.from(document.querySelectorAll('.marca-box')).map(box => ({
+      nombre: box.querySelector('.nombre').value.trim(),
+      hashtags: box.querySelector('.hashtags').value.split(/\s+|,/).filter(x => x.trim()),
+      etiquetas: box.querySelector('.etiquetas').value.split(/\s+|,/).filter(x => x.trim())
+    })).filter(m => m.nombre);
+
+    const jsonFinal = { saludos, frases, despedidas, marcas };
+    resultado.textContent = JSON.stringify(jsonFinal, null, 2);
+  });
+
+  // 🔹 Descargar JSON
+  document.getElementById('descargarJSON').addEventListener('click', () => {
+    if (!resultado.textContent.trim()) {
+      alert('Primero genera el JSON');
+      return;
+    }
+    const blob = new Blob([resultado.textContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'SPOT.JSON';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // 🔹 Cargar JSON existente al editor
+  document.getElementById('cargarJSON').addEventListener('click', () => {
+    const texto = document.getElementById('jsonExistente').value.trim();
+    if (!texto) return alert('Pega un JSON primero');
+    try {
+      const data = JSON.parse(texto);
+      document.getElementById('saludos').value = (data.saludos || []).join('\n');
+      document.getElementById('frases').value = (data.frases || []).join('\n');
+      document.getElementById('despedidas').value = (data.despedidas || []).join('\n');
+      contenedorMarcas.innerHTML = "";
+      (data.marcas || []).forEach(m => crearMarca(m.nombre, m.hashtags || [], m.etiquetas || []));
+      alert("✅ JSON cargado al editor correctamente");
+    } catch (e) {
+      alert("⚠️ Error al leer el JSON. Revisa que tenga formato válido.");
+      console.error(e);
+    }
+  });
+</script>
+
+</body>
+</html>
