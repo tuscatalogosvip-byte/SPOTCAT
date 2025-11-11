@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador y Editor PRO de Botones PDF</title>
+<style>
+body{
+  margin:0; font-family:sans-serif; padding:20px;
+  background:linear-gradient(135deg,#0b1220,#1a1f2e);
+  color:#e6eef8;
+}
+h1{text-align:center;margin-bottom:20px;font-size:22px;}
+.card{
+  background:#0f1724;padding:20px;border-radius:12px;
+  max-width:600px;margin:auto;
+}
+input, select, textarea{
+  width:100%;padding:10px;margin:5px 0;border-radius:10px;border:none;
+  background:#161b22;color:#e6eef8;font-size:14px;
+}
+button{
+  cursor:pointer;border:none;border-radius:10px;font-weight:700;
+  transition:0.2s;
+}
+.add-btn{padding:10px;background:#3b82f6;color:white;width:100%;margin-top:10px;}
+.generate-btn{padding:10px;background:#22c55e;color:white;width:100%;margin-top:10px;}
+.copy-btn{padding:10px;background:#f59e0b;color:black;width:100%;margin-top:10px;}
+.import-btn{padding:10px;background:#a855f7;color:white;width:100%;margin-top:10px;}
+.delete-btn{padding:8px;background:red;color:white;width:100%;margin-top:5px;}
+.move-btn{padding:6px 10px;margin:2px;border-radius:8px;font-size:12px;}
+.preview{margin-top:20px;}
+.preview-buttons{
+  display:flex;flex-direction:column;gap:12px;align-items:center;
+}
+.live-btn{
+  padding:16px 20px;border-radius:16px;font-weight:700;font-size:16px;
+  min-width:220px;text-align:center;transition:0.2s;cursor:pointer;
+  box-shadow:0 6px 10px rgba(0,0,0,0.25);
+}
+.editor-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+}
+label{font-size:13px;color:#9ca3af;}
+</style>
+</head>
+<body>
+
+<h1>⚙️ Generador y Editor PRO de Botones PDF</h1>
+
+<input type="text" id="brandTitle" placeholder="Título de la marca" 
+value="Catálogos Arabela" 
+style="text-align:center;font-size:20px;font-weight:bold;margin-bottom:15px;background:#161b22;color:#e6eef8;border:none;padding:10px;border-radius:10px;width:100%">
+
+<div class="card">
+<div id="buttonsArea"></div>
+
+<button class="add-btn" onclick="addItem()">+ Agregar Botón</button>
+<button class="import-btn" onclick="importarHTML()">📥 Importar HTML existente</button>
+<button class="generate-btn" onclick="renderPreview()">Generar HTML</button>
+<button class="copy-btn" onclick="copyHTML()">Copiar HTML</button>
+
+<div class="preview">
+<h3>Vista previa</h3>
+<div id="previewButtons" class="preview-buttons"></div>
+<textarea id="output" readonly placeholder="Aquí aparecerá el HTML generado..."></textarea>
+</div>
+</div>
+
+<script>
+let items = JSON.parse(localStorage.getItem('botonesPDF') || '[]');
+
+function saveToLocal(){ localStorage.setItem('botonesPDF', JSON.stringify(items)); }
+
+function renderItems(){
+  const area = document.getElementById('buttonsArea');
+  area.innerHTML='';
+  if(items.length===0){
+    area.innerHTML='<p style="text-align:center;color:#9ca3af;">(No hay botones. Puedes agregarlos o importar tu HTML)</p>';
+    return;
+  }
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.style.border="1px solid #222";
+    div.style.padding="10px";
+    div.style.borderRadius="10px";
+    div.style.marginBottom="8px";
+    div.innerHTML=`
+      <div class="editor-header">
+        <strong>${item.name || 'Botón sin título'}</strong>
+      </div>
+      <input placeholder="Nombre del botón" value="${item.name}" oninput="items[${i}].name=this.value;renderPreview();saveToLocal()">
+      <input placeholder="URL del PDF" value="${item.url}" oninput="items[${i}].url=this.value;saveToLocal()">
+      <div style="display:flex;gap:10px;align-items:center;margin-top:5px;">
+        <div>
+          <label>Color fondo:</label>
+          <input type="color" value="${item.bgColor}" onchange="items[${i}].bgColor=this.value;renderPreview();saveToLocal()">
+        </div>
+        <div>
+          <label>Color letra:</label>
+          <input type="color" value="${item.textColor}" onchange="items[${i}].textColor=this.value;renderPreview();saveToLocal()">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div>
+          <button class="move-btn" onclick="moveUp(${i})">⬆️</button>
+          <button class="move-btn" onclick="moveDown(${i})">⬇️</button>
+        </div>
+        <button class="delete-btn" onclick="deleteItem(${i})">✕ Eliminar</button>
+      </div>
+    `;
+    area.appendChild(div);
+  });
+}
+
+function addItem(){
+  items.push({name:'Nuevo botón',url:'',bgColor:'#3b82f6',textColor:'#ffffff'});
+  saveToLocal(); renderItems(); renderPreview();
+}
+
+function deleteItem(i){
+  if(confirm("¿Eliminar este botón?")){
+    items.splice(i,1);
+    saveToLocal(); renderItems(); renderPreview();
+  }
+}
+
+function moveUp(i){
+  if(i>0){ [items[i-1],items[i]]=[items[i],items[i-1]]; saveToLocal(); renderItems(); renderPreview(); }
+}
+function moveDown(i){
+  if(i<items.length-1){ [items[i+1],items[i]]=[items[i],items[i+1]]; saveToLocal(); renderItems(); renderPreview(); }
+}
+
+function normalizeUrl(url){
+  url=url.trim();
+  const m1=url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+  if(m1) return `https://drive.google.com/uc?export=download&id=${m1[1]}`;
+  const m2=url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m2) return `https://drive.google.com/uc?export=download&id=${m2[1]}`;
+  return url;
+}
+
+function renderPreview(){
+  const preview=document.getElementById('previewButtons');
+  preview.innerHTML='';
+  let htmlCode='';
+  const brandTitle=document.getElementById('brandTitle').value||'Catálogos';
+
+  items.forEach((item)=>{
+    const url=normalizeUrl(item.url);
+    const btn=document.createElement('button');
+    btn.className='live-btn';
+    btn.style.background=item.bgColor;
+    btn.style.color=item.textColor;
+    btn.textContent=item.name;
+    btn.onclick=()=>{ 
+      btn.textContent='Descargando... ⏳'; 
+      setTimeout(()=>{ window.open(url,'_blank'); btn.textContent=item.name; },1500);
+    };
+    preview.appendChild(btn);
+
+    htmlCode+=`<button style="background:${item.bgColor};color:${item.textColor};border:0;padding:16px 20px;border-radius:16px;font-weight:700;margin:6px;width:100%;box-shadow:0 6px 10px rgba(0,0,0,0.25);transition:0.2s" onclick="this.textContent='Descargando... ⏳';setTimeout(()=>{window.open('${url}','_blank');this.textContent='${item.name}'},1500)">${item.name}</button>\n`;
+  });
+
+  document.getElementById('output').value=`<h1>${brandTitle}</h1>\n<div style="display:flex;flex-direction:column;gap:12px;align-items:center;padding:10px">\n${htmlCode}</div>`;
+}
+
+function copyHTML(){
+  const output=document.getElementById('output');
+  output.select(); output.setSelectionRange(0,99999);
+  navigator.clipboard.writeText(output.value).then(()=>alert('HTML copiado ✅'));
+}
+
+function importarHTML(){
+  const html = prompt("Pega aquí tu HTML antiguo de botones:");
+  if(!html) return;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const botones = doc.querySelectorAll('button');
+  if(botones.length===0){ alert('No se encontraron botones válidos.'); return; }
+
+  items = [];
+  botones.forEach(btn=>{
+    const style = btn.getAttribute('style') || '';
+    const bg = style.match(/background:([^;]+)/);
+    const color = style.match(/color:([^;]+)/);
+    const onclick = btn.getAttribute('onclick') || '';
+    const urlMatch = onclick.match(/window\.open\('([^']+)'/);
+    items.push({
+      name: btn.textContent.trim(),
+      url: urlMatch ? urlMatch[1] : '',
+      bgColor: bg ? bg[1].trim() : '#3b82f6',
+      textColor: color ? color[1].trim() : '#ffffff'
+    });
+  });
+  saveToLocal();
+  renderItems();
+  renderPreview();
+  alert('✅ HTML importado y editable');
+}
+
+// iniciar
+renderItems();
+renderPreview();
+</script>
+</body>
+</html>
