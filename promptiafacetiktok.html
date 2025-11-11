@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador PROMPTS PRO - Facebook y TikTok</title>
+<style>
+body{
+  background:#000;
+  color:#fff;
+  font-family:'Poppins',sans-serif;
+  text-align:center;
+  padding:20px;
+}
+h1{
+  color:#00aaff;
+  text-shadow:0 0 10px #00aaff;
+}
+form{
+  background:#0d1b2a;
+  border-radius:15px;
+  padding:20px;
+  max-width:500px;
+  margin:auto;
+  box-shadow:0 0 20px rgba(0,170,255,0.3);
+}
+input,textarea{
+  width:90%;
+  margin:10px 0;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  background:#fff;
+  color:#000;
+}
+button{
+  background:#007bff;
+  color:white;
+  border:none;
+  padding:12px 25px;
+  border-radius:10px;
+  font-size:16px;
+  margin:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
+button:hover{
+  background:#005fcc;
+}
+#resultado{
+  background:#001220;
+  border-radius:12px;
+  padding:20px;
+  margin-top:20px;
+  text-align:left;
+  white-space:pre-wrap;
+}
+.copy-btn{
+  background:#28a745;
+}
+.copy-btn:hover{
+  background:#1e7e34;
+}
+</style>
+</head>
+<body>
+<h1>Generador de PROMPTS SEO PRO</h1>
+<form id="formGenerador">
+  <input type="text" id="tema" placeholder="Tema o nombre del catálogo" required><br>
+  <textarea id="detalles" rows="3" placeholder="Detalles o enfoque del contenido"></textarea><br>
+  <input type="url" id="linkApp" placeholder="Link de tu App (opcional)"><br>
+  <input type="url" id="linkVideo" placeholder="Link de video recomendado (opcional)"><br>
+  <button type="button" onclick="generarPrompt('facebook')">Prompt para Facebook</button>
+  <button type="button" onclick="generarPrompt('tiktok')">Prompt para TikTok</button>
+</form>
+
+<div id="resultado"></div>
+<button class="copy-btn" onclick="copiarTexto()">Copiar Prompt</button>
+
+<script>
+function generarPrompt(plataforma){
+  const tema = document.getElementById("tema").value.trim();
+  const detalles = document.getElementById("detalles").value.trim();
+  const linkApp = document.getElementById("linkApp").value.trim();
+  const linkVideo = document.getElementById("linkVideo").value.trim();
+
+  if(!tema){alert("Escribe el tema o catálogo.");return;}
+
+  let prompt = `Genera una publicación optimizada para ${plataforma.toUpperCase()} con el mejor SEO y conexión con el algoritmo actual (${new Date().getFullYear()}). 
+El contenido debe estar completamente listo para publicar, sin explicaciones. 
+
+Detalles del contenido:
+- Tema o catálogo: ${tema}
+- Enfoque o descripción: ${detalles ? detalles : "usar enfoque atractivo con lenguaje natural"}
+${linkApp ? "- Recomienda al final que descarguen el PDF en mi app: " + linkApp : ""}
+${linkVideo ? "- Recomienda también este video: " + linkVideo : ""}
+
+Requisitos:
+- Usa lenguaje natural, fluido y llamativo.
+- No pidas likes ni suscripciones.
+- Incluye hashtags virales y relacionados con el tema.
+- Mantén el texto corto y dinámico.
+- Optimiza el texto para visibilidad y alcance orgánico en ${plataforma} 2025.
+- No menciones que es generado por IA.
+
+Entrega el resultado final con formato:
+1️⃣ Título
+2️⃣ Descripción
+3️⃣ Hashtags`;
+
+  document.getElementById("resultado").innerText = prompt;
+}
+
+function copiarTexto(){
+  const texto = document.getElementById("resultado").innerText;
+  navigator.clipboard.writeText(texto);
+  alert("Prompt copiado ✅ Pégalo en tu IA");
+}
+</script>
+</body>
+</html>
