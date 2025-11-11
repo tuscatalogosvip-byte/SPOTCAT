@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador ZIP Catálogos</title>
+<style>
+body {
+  background: #111;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+}
+header img {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+header h1 {
+  font-size: 20px;
+  font-weight: bold;
+}
+input, button {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 15px;
+  border: 2px solid orange;
+}
+input[type="file"], input[type="text"], input[type="color"] {
+  background: #222;
+  color: #fff;
+  border: 2px solid #555;
+}
+button {
+  background: orange;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:hover {
+  background: #ffb84d;
+}
+.preview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 10px;
+}
+.preview img {
+  width: 100px;
+  margin: 5px;
+  border: 2px solid #333;
+  border-radius: 5px;
+}
+progress {
+  width: 80%;
+  height: 25px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 15px auto;
+  display: none;
+}
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #00c853, #b2ff59, #00c853);
+  background-size: 400% 400%;
+  animation: move 2s linear infinite;
+}
+@keyframes move {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+#porcentaje {
+  display: none;
+  font-size: 14px;
+  margin-top: -10px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" id="logoPreview">
+  <h1 id="tituloPreview">Mi Catálogo Digital</h1>
+</header>
+
+<div>
+  <input type="text" id="nombreCatalogo" placeholder="Nombre del catálogo" style="width:250px;">
+  <input type="file" id="logoInput" accept="image/*">
+</div>
+
+<div>
+  <label>Color barra:</label>
+  <input type="color" id="colorBarra" value="#ffa500">
+  <label>Color letra:</label>
+  <input type="color" id="colorLetra" value="#000000">
+</div>
+
+<input type="file" id="imagenes" multiple accept="image/*">
+<br>
+<button id="btnZIP">📦 Generar ZIP</button>
+<button id="btnReset">🔄 Reiniciar</button>
+
+<progress id="progreso" value="0" max="100"></progress>
+<div id="porcentaje"></div>
+
+<div class="preview" id="preview"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+const inputImagenes = document.getElementById('imagenes');
+const preview = document.getElementById('preview');
+const progreso = document.getElementById('progreso');
+const porcentaje = document.getElementById('porcentaje');
+const btnZIP = document.getElementById('btnZIP');
+const btnReset = document.getElementById('btnReset');
+const nombreCatalogo = document.getElementById('nombreCatalogo');
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+const tituloPreview = document.getElementById('tituloPreview');
+const colorBarra = document.getElementById('colorBarra');
+const colorLetra = document.getElementById('colorLetra');
+
+let imagenesCargadas = [];
+let logoData = logoPreview.src;
+
+// Nombre dinámico
+nombreCatalogo.addEventListener('input', () => {
+  tituloPreview.textContent = nombreCatalogo.value || "Mi Catálogo Digital";
+});
+
+// Logo dinámico
+logoInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    logoData = ev.target.result;
+    logoPreview.src = logoData;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Vista previa
+inputImagenes.addEventListener('change', (e) => {
+  preview.innerHTML = "";
+  imagenesCargadas = Array.from(e.target.files);
+  imagenesCargadas.forEach(file => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    preview.appendChild(img);
+  });
+});
+
+// Convertir imagen a base64
+function convertirImagenBase64(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Agregar barra sin recortar la imagen
+async function agregarMarcaAgua(imgBase64, nombre, logoBase64, barraColor, letraColor) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = imgBase64;
+    img.onload = function() {
+      const barraAltura = Math.floor(img.height * 0.08);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height + barraAltura;
+
+      // Barra superior
+      ctx.fillStyle = barraColor;
+      ctx.fillRect(0, 0, canvas.width, barraAltura);
+
+      // Logo
+      if (logoBase64) {
+        const logo = new Image();
+        logo.src = logoBase64;
+        logo.onload = () => {
+          const logoSize = barraAltura * 0.8;
+          ctx.drawImage(logo, 10, (barraAltura - logoSize)/2, logoSize, logoSize);
+          ctx.font = `${Math.floor(barraAltura * 0.5)}px Arial Black`;
+          ctx.fillStyle = letraColor;
+          ctx.fillText(nombre, logoSize + 25, barraAltura * 0.7);
+
+          // Imagen completa abajo
+          ctx.drawImage(img, 0, barraAltura, canvas.width, img.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.95));
+        };
+      } else {
+        ctx.font = `${Math.floor(barraAltura * 0.5)}px Arial Black`;
+        ctx.fillStyle = letraColor;
+        ctx.fillText(nombre, 20, barraAltura * 0.7);
+        ctx.drawImage(img, 0, barraAltura, canvas.width, img.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.95));
+      }
+    };
+  });
+}
+
+// Generar ZIP
+async function generarZIP() {
+  if (imagenesCargadas.length === 0) {
+    alert("Selecciona al menos una imagen.");
+    return;
+  }
+
+  progreso.style.display = "block";
+  porcentaje.style.display = "block";
+  progreso.value = 0;
+  porcentaje.textContent = "Iniciando...";
+
+  const zip = new JSZip();
+  for (let i = 0; i < imagenesCargadas.length; i++) {
+    const base64 = await convertirImagenBase64(imagenesCargadas[i]);
+    const procesada = await agregarMarcaAgua(
+      base64,
+      tituloPreview.textContent,
+      logoData,
+      colorBarra.value,
+      colorLetra.value
+    );
+    zip.file(`pagina_${i + 1}.jpg`, procesada.split(",")[1], { base64: true });
+
+    const progresoActual = Math.round(((i + 1) / imagenesCargadas.length) * 100);
+    progreso.value = progresoActual;
+    porcentaje.textContent = `Procesando ${progresoActual}%`;
+  }
+
+  zip.generateAsync({ type: "blob" }).then(content => {
+    saveAs(content, `${tituloPreview.textContent || "catalogo"}.zip`);
+    progreso.style.display = "none";
+    porcentaje.textContent = "Completado ✅";
+    setTimeout(() => porcentaje.style.display = "none", 2000);
+  });
+}
+
+// Reiniciar
+btnReset.addEventListener('click', () => {
+  inputImagenes.value = "";
+  nombreCatalogo.value = "";
+  logoInput.value = "";
+  logoData = logoPreview.src;
+  tituloPreview.textContent = "Mi Catálogo Digital";
+  colorBarra.value = "#ffa500";
+  colorLetra.value = "#000000";
+  preview.innerHTML = "";
+  progreso.style.display = "none";
+  porcentaje.style.display = "none";
+  imagenesCargadas = [];
+});
+
+btnZIP.addEventListener('click', generarZIP);
+</script>
+
+</body>
+</html>
