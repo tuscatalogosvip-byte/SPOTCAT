@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visualizador de Imágenes JPG/WEBP</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .imagenes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+      width: 100%;
+    }
+
+    .imagen {
+      width: 200px;
+      margin: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Visualizador de Imágenes JPG/WEBP</h1>
+
+<form id="formulario">
+  <input type="text" id="urlEjemplo" placeholder="Pega una URL de ejemplo (por ej: .../69.jpg?12345)" required />
+  <input type="number" id="totalImgs" placeholder="Cantidad de imágenes" min="1" required />
+  <button type="submit">Mostrar imágenes</button>
+</form>
+
+<div class="imagenes" id="contenedor"></div>
+
+<script>
+  document.getElementById('formulario').addEventListener('submit', function(event) {
+    event.preventDefault();
+    mostrarImagenes();
+  });
+
+  function mostrarImagenes() {
+    const ejemplo = document.getElementById('urlEjemplo').value.trim();
+    const total = parseInt(document.getElementById('totalImgs').value);
+    const contenedor = document.getElementById('contenedor');
+    contenedor.innerHTML = '';
+
+    if (!ejemplo) {
+      alert("Por favor pega una URL válida de ejemplo.");
+      return;
+    }
+
+    // Extraer base antes del número
+    const regex = /(.*?)(\d+)\.(jpg|webp)(\?.*)?$/i;
+    const match = ejemplo.match(regex);
+    if (!match) {
+      alert("La URL de ejemplo no es válida. Debe contener un número antes de .jpg o .webp");
+      return;
+    }
+
+    const base = match[1];       // parte antes del número
+    const extension = match[3];  // jpg o webp
+    const query = match[4] || ''; // parámetros opcionales (como ?251107205346)
+
+    for (let i = 1; i <= total; i++) {
+      const numero = i; // o podrías usar i+68 si quieres empezar desde 69
+      const img = document.createElement("img");
+      img.className = "imagen";
+      img.src = `${base}${numero}.${extension}${query}`;
+      img.alt = `Imagen ${numero}.${extension}`;
+      img.onerror = function() {
+        console.warn('No se pudo cargar:', this.src);
+        this.style.display = 'none';
+      };
+      contenedor.appendChild(img);
+    }
+  }
+</script>
+
+</body>
+</html>
