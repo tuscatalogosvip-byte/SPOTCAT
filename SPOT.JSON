@@ -108,6 +108,142 @@
         "facial",
         "maquillajediario"
       ]
+    },
+    {
+      "nombre": "CYZONE",
+      "hashtags": [
+        "#cyzone",
+        "#cyzonelover",
+        "#makeup",
+        "#belleza",
+        "#maquillaje"
+      ],
+      "etiquetas": [
+        "cyzoneoficial",
+        "cyzonemakeup",
+        "cyzoneloverssi",
+        "productoviral",
+        "cyzonecontigoparatichallenge"
+      ]
+    },
+    {
+      "nombre": "LBEL",
+      "hashtags": [
+        "#Lbel",
+        "#LbelOnline",
+        "#Maquillaje",
+        "#Belleza",
+        "#CuidadoFacial"
+      ],
+      "etiquetas": [
+        "LbelOnline",
+        "LbelCosmetics",
+        "MaquillajeBelleza",
+        "BellezaNatural",
+        "CrueltyFree"
+      ]
+    },
+    {
+      "nombre": "TUPPERWARE",
+      "hashtags": [
+        "#TupperwareMexico",
+        "#SoyChicaTupperware",
+        "#CocinaConEstilo",
+        "#TupperwareLovers",
+        "#AmorPorElTupper"
+      ],
+      "etiquetas": [
+        "SoyChicaTupperware",
+        "ParaísoTupperware",
+        "TupperAdictos",
+        "TupperwareLife",
+        "CocinaConEstilo"
+      ]
+    },
+    {
+      "nombre": "BETTERWARE",
+      "hashtags": [
+        "#Betterware",
+        "#SeVaAPonerMejor",
+        "#HogarEnArmonia",
+        "#BetterwareMexico",
+        "#EncuentraLaSolucion"
+      ],
+      "etiquetas": [
+        "SeVaAPonerBetterware",
+        "MejorConBetterware",
+        "HogarOrganizado",
+        "CocinaFácil",
+        "EtiquetasBetterware"
+      ]
+    },
+    {
+      "nombre": "ANDREA",
+      "hashtags": [
+        "#CatalogoAndrea",
+        "#AndreaModa",
+        "#Andrea2025",
+        "#EstiloAndrea",
+        "#ZapatosAndrea"
+      ],
+      "etiquetas": [
+        "AndreaModa",
+        "AndreaCalzado",
+        "AndreaEstilo",
+        "AndreaHome",
+        "AndreaBelleza"
+      ]
+    },
+    {
+      "nombre": "PRICESHOES",
+      "hashtags": [
+        "#PriceShoes",
+        "#Moda",
+        "#Calzado",
+        "#Estilo",
+        "#Tendencias"
+      ],
+      "etiquetas": [
+        "ModaCalzado",
+        "EstiloUrbano",
+        "PriceLooks",
+        "ZapatosVirales",
+        "FashionShoes"
+      ]
+    },
+    {
+      "nombre": "YANBAL",
+      "hashtags": [
+        "#Yanbal",
+        "#Belleza",
+        "#Makeup",
+        "#CuidadoFacial",
+        "#Emprendedoras"
+      ],
+      "etiquetas": [
+        "YanbalOficial",
+        "BellezaNatural",
+        "MaquillajeProfesional",
+        "CuidadoDePiel",
+        "ComunidadYanbal"
+      ]
+    },
+    {
+      "nombre": "AVON",
+      "hashtags": [
+        "#Avon",
+        "#Makeup",
+        "#Beauty",
+        "#AvonCosmetics",
+        "#Skincare"
+      ],
+      "etiquetas": [
+        "AvonProductos",
+        "AvonBelleza",
+        "AvonEmprendedoras",
+        "AvonPerfumes",
+        "AvonCuidado"
+      ]
     }
   ]
 }
