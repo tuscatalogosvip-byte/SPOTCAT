@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Generador Pro - Galería JSON con Buscador</title>
+<style>
+  :root{
+    --verde: #2E7D32;
+    --fondoPagina: #f9f9f9;
+    --fondoTarjeta: #ddd;
+    --txt: #222;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:sans-serif; background:var(--fondoPagina); color:var(--txt); padding:20px;}
+  .wrap{max-width:1200px; margin:0 auto; display:grid; grid-template-columns:420px 1fr; gap:18px;}
+  header{grid-column:1/-1; text-align:center; margin-bottom:8px;}
+  h1{margin:0; color:var(--verde); font-size:1.6rem;}
+  p.lead{color:#555; margin:6px 0 18px 0;}
+  .panel{background:#eee; padding:14px; border-radius:12px; border:1px solid #bbb; max-height: 90vh; overflow-y: auto;}
+  .controls-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  button{padding:8px 12px; border-radius:8px; border:none; cursor:pointer;}
+  button.primary{background:var(--verde); color:#fff;}
+  button.ghost{background:transparent; border:1px solid #555; color:#555;}
+  input[type="text"], input[type="url"], input[type="color"], textarea{
+    width:100%; padding:8px; margin-top:6px; border-radius:6px; border:1px solid #aaa; background:#fff; color:#000;
+  }
+  textarea{min-height:120px; font-family: monospace;}
+  .row-editor{
+    border:1px dashed #999; padding:10px; border-radius:8px; margin-bottom:12px;
+    background: #fafafa;
+  }
+  .row-editor.dragging {
+    opacity: 0.5;
+    border-color: #2E7D32;
+    background: #e0f2e9;
+  }
+  .items-editor{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .item-box{
+    border:1px solid #999; padding:6px; border-radius:6px;
+    background: white;
+  }
+  .item-box.dragging {
+    opacity: 0.5;
+    border-color: #2E7D32;
+    background: #e0f2e9;
+  }
+  .item-controls, .fila-controls {
+    display:flex; justify-content:flex-end; gap:6px; margin-bottom:8px;
+  }
+  .btn-del {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .preview{background:#f0f0f0; padding:14px; border-radius:12px; min-height:420px; color:var(--txt); overflow-y:auto;}
+  .fila{margin-bottom:18px; padding:12px; border-radius:10px; background:var(--fondoTarjeta);}
+  .fila-header{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;}
+  .fila-title{font-weight:700; font-size:1rem; color: var(--verde);}
+  .grid{display:flex; gap:12px; overflow-x:auto; padding-bottom:8px;}
+  .card{background:#bbb; border-radius:8px; padding:8px; min-width:160px; display:flex; flex-direction:column; gap:8px; color:#222;}
+  .thumb{width:100%; height:200px; object-fit:cover; border-radius:6px;}
+  .card-title{text-align:center; font-weight:700;}
+  #searchInput {
+    padding: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+    font-size: 1rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Generador Pro - Galería JSON con Buscador</h1>
+    <p class="lead">Busca filas por nombre (ejemplo: Avon, Arabela). El editor y vista previa se filtrarán.</p>
+  </header>
+
+  <section class="panel" id="editor">
+    <input type="text" id="searchInput" placeholder="Buscar filas por título..." autocomplete="off" />
+    <div class="controls-row">
+      <button class="primary" id="btnAddFila">+ Fila</button>
+      <button class="ghost" id="btnGenerate">Generar JSON</button>
+      <button class="ghost" id="btnCopy">Copiar JSON</button>
+      <button class="ghost" id="btnLoadJSON">Cargar JSON</button>
+      <input type="file" id="inputFileJSON" accept=".json" style="display:none;" />
+    </div>
+
+    <div id="filasEditor"></div>
+
+    <label>JSON (editable)</label>
+    <textarea id="jsonArea" placeholder='Aquí verás el JSON generado y podrás corregirlo...'></textarea>
+  </section>
+
+  <aside class="preview" id="preview"></aside>
+</div>
+
+<script>
+let state = {
+  filas: [
+    { titulo: "Avon", color: "#2E7D32", items: [{ titulo: "Producto 1", img: "", link: "" }] },
+    { titulo: "Arabela", color: "#F57F17", items: [{ titulo: "Producto A", img: "", link: "" }] },
+    { titulo: "Otras", color: "#1565C0", items: [] }
+  ]
+};
+
+const filasEditor = document.getElementById('filasEditor');
+const preview = document.getElementById('preview');
+const jsonArea = document.getElementById('jsonArea');
+const btnAddFila = document.getElementById('btnAddFila');
+const btnGenerate = document.getElementById('btnGenerate');
+const btnCopy = document.getElementById('btnCopy');
+const btnLoadJSON = document.getElementById('btnLoadJSON');
+const inputFileJSON = document.getElementById('inputFileJSON');
+const searchInput = document.getElementById('searchInput');
+
+let draggedFilaIndex = null;
+let draggedItem = { filaIndex: null, itemIndex: null };
+
+function renderEditor() {
+  filasEditor.innerHTML = '';
+  const filter = searchInput.value.trim().toLowerCase();
+
+  state.filas.forEach((fila, i) => {
+    if (filter && !fila.titulo.toLowerCase().includes(filter)) return;
+
+    const f = document.createElement('div');
+    f.className = 'row-editor';
+    f.dataset.index = i;
+
+    // solo arrastrable si NO haces clic dentro de input
+    f.addEventListener('mousedown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      f.draggable = true;
+    });
+    f.addEventListener('mouseup', () => f.draggable = false);
+
+    f.addEventListener('dragstart', e => {
+      if (!f.draggable) return e.preventDefault();
+      draggedFilaIndex = i;
+      f.classList.add('dragging');
+    });
+    f.addEventListener('dragend', () => {
+      draggedFilaIndex = null;
+      f.classList.remove('dragging');
+      f.draggable = false;
+    });
+    f.addEventListener('dragover', e => {
+      e.preventDefault();
+      const overIndex = i;
+      if (draggedFilaIndex === null || draggedFilaIndex === overIndex) return;
+      const draggedFila = state.filas.splice(draggedFilaIndex, 1)[0];
+      state.filas.splice(overIndex, 0, draggedFila);
+      draggedFilaIndex = overIndex;
+      renderEditor(); renderPreview();
+    });
+
+    const filaControls = document.createElement('div');
+    filaControls.className = 'fila-controls';
+
+    const btnDelFila = document.createElement('button');
+    btnDelFila.textContent = '✖';
+    btnDelFila.className = 'btn-del';
+    btnDelFila.onclick = () => {
+      if (confirm(`¿Eliminar fila "${fila.titulo}"?`)) {
+        state.filas.splice(i, 1);
+        renderEditor(); renderPreview();
+      }
+    };
+
+    filaControls.appendChild(btnDelFila);
+    f.appendChild(filaControls);
+
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.value = fila.titulo;
+    titleInput.placeholder = 'Título de la fila';
+    titleInput.addEventListener('input', e => {
+      state.filas[i].titulo = e.target.value;
+      renderPreview();
+    });
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = fila.color;
+    colorInput.addEventListener('input', e => {
+      state.filas[i].color = e.target.value;
+      renderPreview();
+    });
+
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'items-editor';
+
+    fila.items.forEach((it, j) => {
+      const itemBox = document.createElement('div');
+      itemBox.className = 'item-box';
+      itemBox.dataset.filaIndex = i;
+      itemBox.dataset.itemIndex = j;
+
+      itemBox.addEventListener('mousedown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        itemBox.draggable = true;
+      });
+      itemBox.addEventListener('mouseup', () => itemBox.draggable = false);
+
+      itemBox.addEventListener('dragstart', e => {
+        if (!itemBox.draggable) return e.preventDefault();
+        draggedItem = { filaIndex: i, itemIndex: j };
+        itemBox.classList.add('dragging');
+      });
+      itemBox.addEventListener('dragend', () => {
+        draggedItem = { filaIndex: null, itemIndex: null };
+        itemBox.classList.remove('dragging');
+        itemBox.draggable = false;
+      });
+      itemBox.addEventListener('dragover', e => {
+        e.preventDefault();
+        const overFilaIndex = i, overItemIndex = j;
+        if (draggedItem.filaIndex === null) return;
+        if (draggedItem.filaIndex === overFilaIndex && draggedItem.itemIndex === overItemIndex) return;
+        const dragged = state.filas[draggedItem.filaIndex].items.splice(draggedItem.itemIndex, 1)[0];
+        state.filas[overFilaIndex].items.splice(overItemIndex, 0, dragged);
+        draggedItem = { filaIndex: overFilaIndex, itemIndex: overItemIndex };
+        renderEditor(); renderPreview();
+      });
+
+      const itemControls = document.createElement('div');
+      itemControls.className = 'item-controls';
+      const btnDelItem = document.createElement('button');
+      btnDelItem.textContent = '✖';
+      btnDelItem.className = 'btn-del';
+      btnDelItem.onclick = () => {
+        if (confirm(`¿Eliminar item "${it.titulo}"?`)) {
+          state.filas[i].items.splice(j, 1);
+          renderEditor(); renderPreview();
+        }
+      };
+      itemControls.appendChild(btnDelItem);
+
+      const inputTitulo = document.createElement('input');
+      inputTitulo.type = 'text';
+      inputTitulo.value = it.titulo;
+      inputTitulo.placeholder = 'Título portada';
+      inputTitulo.addEventListener('input', e => {
+        it.titulo = e.target.value; renderPreview();
+      });
+
+      const inputImg = document.createElement('input');
+      inputImg.type = 'url';
+      inputImg.value = it.img;
+      inputImg.placeholder = 'URL imagen';
+      inputImg.addEventListener('input', e => {
+        it.img = e.target.value; renderPreview();
+      });
+
+      const inputLink = document.createElement('input');
+      inputLink.type = 'url';
+      inputLink.value = it.link;
+      inputLink.placeholder = 'URL descarga';
+      inputLink.addEventListener('input', e => {
+        it.link = e.target.value; renderPreview();
+      });
+
+      itemBox.append(inputTitulo, inputImg, inputLink, itemControls);
+      itemsWrap.appendChild(itemBox);
+    });
+
+    const addItemBtn = document.createElement('button');
+    addItemBtn.textContent = '+ Item';
+    addItemBtn.onclick = () => {
+      fila.items.push({ titulo: 'Nuevo Item', img: '', link: '' });
+      renderEditor(); renderPreview();
+    };
+
+    f.append(titleInput, colorInput, itemsWrap, addItemBtn);
+    filasEditor.appendChild(f);
+  });
+}
+
+function renderPreview() {
+  preview.innerHTML = '';
+  const filter = searchInput.value.trim().toLowerCase();
+  state.filas.forEach(fila => {
+    if (filter && !fila.titulo.toLowerCase().includes(filter)) return;
+    const filaEl = document.createElement('div');
+    filaEl.className = 'fila';
+    const head = document.createElement('div');
+    head.className = 'fila-header';
+    const title = document.createElement('h3');
+    title.className = 'fila-title';
+    title.textContent = fila.titulo;
+    title.style.color = fila.color;
+    head.appendChild(title);
+    filaEl.appendChild(head);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    fila.items.forEach(it => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const img = document.createElement('img');
+      img.className = 'thumb';
+      img.src = it.img || '';
+      const cardTitle = document.createElement('div');
+      cardTitle.className = 'card-title';
+      cardTitle.textContent = it.titulo;
+      card.append(img, cardTitle);
+      grid.appendChild(card);
+    });
+    filaEl.appendChild(grid);
+    preview.appendChild(filaEl);
+  });
+}
+
+btnAddFila.onclick = () => { state.filas.push({ titulo:'Nueva fila', color:'#2E7D32', items:[] }); renderEditor(); renderPreview(); };
+btnGenerate.onclick = () => { jsonArea.value = JSON.stringify(state, null, 2); alert('JSON generado'); };
+btnCopy.onclick = async () => { try{ await navigator.clipboard.writeText(jsonArea.value); alert('Copiado'); }catch{ alert('Error al copiar'); } };
+btnLoadJSON.onclick = () => inputFileJSON.click();
+inputFileJSON.onchange = e => { const file=e.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=evt=>{ try{ const j=JSON.parse(evt.target.result); if(j.filas){ state=j; renderEditor(); renderPreview(); alert('JSON cargado'); } }catch{ alert('Error al parsear'); } }; r.readAsText(file); };
+jsonArea.addEventListener('input',()=>{ try{ const j=JSON.parse(jsonArea.value); if(j.filas){ state=j; renderEditor(); renderPreview(); } }catch{} });
+searchInput.addEventListener('input',()=>{ renderEditor(); renderPreview(); });
+
+renderEditor(); renderPreview();
+</script>
+</body>
+</html>
