@@ -17,50 +17,28 @@
     text-align: center;
     color: #ff80bf;
   }
-  label {
-    font-weight: 600;
-    color: #ffb3d9;
-  }
+  label { font-weight: 600; color: #ffb3d9; }
   textarea, input, select, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border-radius: 8px;
-    border: none;
-    font-size: 15px;
+    width: 100%; padding: 10px; margin-top: 5px;
+    border-radius: 8px; border: none; font-size: 15px;
   }
-  input, select, textarea {
-    background: #111;
-    color: #fff;
-  }
+  input, select, textarea { background: #111; color: #fff; }
   button {
     background: linear-gradient(90deg, #ff4081, #ff80bf);
-    color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: 15px;
+    color: #fff; font-weight: bold; cursor: pointer;
+    transition: 0.3s; margin-top: 15px;
   }
   button:hover { opacity: 0.9; }
   #resultado {
-    margin-top: 30px;
-    background: #111;
-    padding: 20px;
-    border-radius: 12px;
-    white-space: pre-wrap;
-    border: 1px solid #333;
+    margin-top: 30px; background: #111; padding: 20px;
+    border-radius: 12px; white-space: pre-wrap; border: 1px solid #333;
   }
   #copyBtn {
     display: none;
     background: linear-gradient(90deg, #ff66a3, #ff99cc);
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-weight: bold;
-    width: 100%;
+    color: white; border: none; padding: 10px;
+    border-radius: 8px; cursor: pointer; margin-top: 10px;
+    font-weight: bold; width: 100%;
   }
   #copyBtn:hover { opacity: 0.9; }
 </style>
@@ -70,6 +48,12 @@
 <h1>🎬 Generador Spot + SEO YouTube 2025</h1>
 
 <form id="seoForm">
+  <label>Marca:</label>
+  <select id="marca">
+    <option value="ARABELA">Arabela</option>
+    <option value="FULLER">Fuller</option>
+  </select>
+
   <label>Nombre del catálogo:</label>
   <input type="text" id="catalogo" placeholder="Ej. Catálogo Arabela Campaña 3 2025" required>
 
@@ -104,67 +88,62 @@
 <script>
 const usarApp = document.getElementById('usarApp');
 const appInfo = document.getElementById('appInfo');
+const formBtn = document.querySelector('button[type="submit"]');
 let jsonData = null;
 
 usarApp.addEventListener('change', () => {
   appInfo.style.display = usarApp.value === 'si' ? 'block' : 'none';
 });
 
-// Cargar JSON dinámicamente desde GitHub
+formBtn.disabled = true; // Bloquea hasta que cargue el JSON
+
 async function cargarDatos() {
   try {
+    console.log("⏳ Cargando JSON...");
     const res = await fetch('https://tuscatalogosvip-byte.github.io/SPOTCAT/SPOT.JSON');
     jsonData = await res.json();
     console.log("✅ JSON cargado correctamente");
   } catch (e) {
     console.warn("⚠️ No se pudo cargar el JSON externo:", e);
-    jsonData = {
-      saludos: ["💖 ¡Hola mis amores de las ventas!"],
-      despedidas: ["💋 ¡Nos vemos en el próximo video!"],
-      hashtags: ["#Catalogos2025 #Moda #Belleza"],
-      etiquetas: ["belleza, moda, perfumes"]
-    };
+    alert("No se pudo cargar el archivo JSON. Verifica la ruta o conexión.");
   }
+  formBtn.disabled = false; // Habilita el botón
 }
 cargarDatos();
 
 document.getElementById('seoForm').addEventListener('submit', e => {
   e.preventDefault();
+  if (!jsonData) return alert("⚠️ Espera a que se cargue el JSON.");
+
   const catalogo = document.getElementById('catalogo').value.trim();
   const resumen = document.getElementById('resumen').value.trim();
   const tipoVideo = document.getElementById('tipoVideo').value;
   const usarAppVal = usarApp.value;
   const nombreApp = document.getElementById('nombreApp').value.trim();
   const urlApp = document.getElementById('urlApp').value.trim();
+  const marcaSel = document.getElementById('marca').value;
 
-  // 🔄 Elegir textos aleatorios del JSON
+  // 🔄 Elegir textos aleatorios
   const saludo = jsonData.saludos[Math.floor(Math.random() * jsonData.saludos.length)];
   const despedida = jsonData.despedidas[Math.floor(Math.random() * jsonData.despedidas.length)];
-  const hashtags = jsonData.hashtags[Math.floor(Math.random() * jsonData.hashtags.length)];
-  const etiquetas = jsonData.etiquetas[Math.floor(Math.random() * jsonData.etiquetas.length)];
 
-  // 🎙️ Crear spot
+  // 🎯 Buscar la marca elegida
+  const marcaData = jsonData.marcas.find(m => m.nombre === marcaSel);
+  const hashtags = marcaData.hashtags.join(" ");
+  const etiquetas = marcaData.etiquetas.join(", ");
+
+  // 🎙️ Crear SPOT
   let spot = "";
   if (tipoVideo === "normal") {
-    spot = `${saludo}  
-Hoy te traigo el ${catalogo}, lleno de novedades.  
-${resumen}  
-Si te gusta este contenido, dale like 👍 y suscríbete 🔔.  
-${despedida}`;
-    if (usarAppVal === 'si' && nombreApp) spot += `  
-
-📱 Descarga nuestra app "${nombreApp}" 👉 ${urlApp}`;
+    spot = `${saludo}\nHoy te traigo el ${catalogo}, lleno de novedades.\n${resumen}\nSi te gusta este contenido, dale like 👍 y suscríbete 🔔.\n${despedida}`;
+    if (usarAppVal === 'si' && nombreApp) spot += `\n\n📱 Descarga nuestra app "${nombreApp}" 👉 ${urlApp}`;
   } else {
-    spot = `${saludo}  
-Mira este adelanto del ${catalogo}.  
-${resumen}  
-No olvides dejar tu like 👍 y suscribirte 🔔.  
-${despedida}`;
+    spot = `${saludo}\nMira este adelanto del ${catalogo}.\n${resumen}\nNo olvides dejar tu like 👍 y suscribirte 🔔.\n${despedida}`;
   }
 
   const titulo = `✨ ${catalogo} | Ofertas, Belleza y Novedades 2025`;
   const descripcion = `${resumen}\n${usarAppVal === 'si' ? `📱 Descarga "${nombreApp}" 👉 ${urlApp}` : ''}`;
-  
+
   const resultado = `
 🎯 SPOT + SEO GENERADO
 =============================
