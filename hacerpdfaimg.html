@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF a ZIP de Imágenes WebP (Ultra Rápido)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+    padding: 30px;
+    color: #333;
+  }
+  h1 { color: #007acc; }
+  input, button {
+    padding: 8px 14px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+  }
+  button {
+    background: #007acc;
+    color: white;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
+  #progress {
+    margin-top: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<h1>PDF a ZIP de Imágenes WebP (Optimizado)</h1>
+<input type="file" id="pdfFile" accept="application/pdf">
+<button id="convertBtn" disabled>Generar ZIP</button>
+<div id="progress"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js";
+
+const input = document.getElementById("pdfFile");
+const btn = document.getElementById("convertBtn");
+const progress = document.getElementById("progress");
+let pdfDoc = null;
+
+input.addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file || file.type !== "application/pdf") {
+    alert("Selecciona un PDF válido");
+    return;
+  }
+  progress.textContent = "Cargando PDF...";
+  const data = new Uint8Array(await file.arrayBuffer());
+  try {
+    pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+    btn.disabled = false;
+    progress.textContent = `PDF cargado (${pdfDoc.numPages} páginas).`;
+  } catch (err) {
+    alert("Error al cargar el PDF: " + err.message);
+  }
+});
+
+btn.addEventListener("click", async () => {
+  if (!pdfDoc) return;
+  btn.disabled = true;
+  progress.textContent = "Procesando páginas...";
+
+  const zip = new JSZip();
+  const total = pdfDoc.numPages;
+  const scale = 1.3; // velocidad + nitidez
+  const concurrency = 8; // 8 páginas en paralelo
+  let completed = 0;
+
+  async function procesarPagina(num) {
+    const page = await pdfDoc.getPage(num);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // WEBP: más ligero y nítido que JPG
+    const blob = await new Promise(res => canvas.toBlob(res, "image/webp", 0.7));
+    zip.file(`pagina_${num}.webp`, blob, { binary: true });
+
+    completed++;
+    progress.textContent = `Procesando ${completed}/${total}...`;
+
+    // liberar memoria
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+
+  // Procesar en lotes simultáneos
+  for (let i = 1; i <= total; i += concurrency) {
+    const batch = [];
+    for (let j = i; j < i + concurrency && j <= total; j++) {
+      batch.push(procesarPagina(j));
+    }
+    await Promise.all(batch);
+  }
+
+  progress.textContent = "Comprimiendo ZIP...";
+  const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+  saveAs(zipBlob, "imagenes_pdf_webp.zip");
+
+  progress.textContent = "✅ Listo: ZIP generado correctamente.";
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
